@@ -10,7 +10,6 @@ docker build -t my-minecraft .
 RUNTIME_DIR=$(cygpath -aw ./runtime || realpath ./runtime)
 SUDO=$(which sudo || echo '')
 
-echo "eula=true" | $SUDO tee "${RUNTIME_DIR}/eula.txt"
 
 docker run -d -it \
     --name my-minecraft \

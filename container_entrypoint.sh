@@ -12,7 +12,9 @@ cd "${RUNTIME_DIR}"
 
 # https://aikar.co/2018/07/02/tuning-the-jvm-g1gc-garbage-collector-flags-for-minecraft/\
 
-EXEC_JAR=$(ls *.jar | head -n1)
+EXEC_JAR=$(ls spigot-*.jar | head -n1)
+
+echo "eula=true" > eula.txt
 
 java \
     -Xms10G \
