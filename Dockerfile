@@ -1,15 +1,22 @@
 FROM fedora:38 AS minecraft
 
+RUN dnf install -y git java-latest-openjdk
+
+# Build Spigot
+WORKDIR /opt/spigot-build
+
+RUN curl -o BuildTools.jar "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar" 
+RUN java -jar BuildTools.jar
+
+# Put Spigot in the right place, and clean up the build dir
 WORKDIR /opt/minecraft
+RUN mv -v /opt/spigot-build/spigot-*.jar . && \
+    rm -rf /opt/spigot-build
 
-RUN dnf install -y java-latest-openjdk
+# Copy and configure the remaining files
+COPY container_entrypoint.sh server.properties ./
+RUN chmod +x container_entrypoint.sh
 
-ADD https://piston-data.mojang.com/v1/objects/84194a2f286ef7c14ed7ce0090dba59902951553/server.jar minecraft-server.jar
-
-COPY start.sh server.properties ./
-RUN chmod +x start.sh
-
+# Configure runtime options
 VOLUME [ "/opt/minecraft-runtime" ]
-
-ENTRYPOINT [ "./start.sh" ]
-CMD [ "nogui" ]
+CMD [ "./container_entrypoint.sh", "nogui" ]

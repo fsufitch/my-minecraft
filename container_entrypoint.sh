@@ -6,11 +6,13 @@ RUNTIME_DIR=/opt/minecraft-runtime
 
 mkdir -p "${RUNTIME_DIR}"
 
-cp "${SCRIPT_DIR}"/* "${RUNTIME_DIR}"/.
+cp -r "${SCRIPT_DIR}"/* "${RUNTIME_DIR}"/.
 
 cd "${RUNTIME_DIR}"
 
 # https://aikar.co/2018/07/02/tuning-the-jvm-g1gc-garbage-collector-flags-for-minecraft/\
+
+EXEC_JAR=$(ls *.jar | head -n1)
 
 java \
     -Xms10G \
@@ -35,5 +37,6 @@ java \
     -XX:MaxTenuringThreshold=1 \
     -Dusing.aikars.flags=https://mcflags.emc.gs \
     -Daikars.new.flags=true \
-    -jar minecraft-server.jar
+    -jar "$EXEC_JAR" \
+    $@
 
