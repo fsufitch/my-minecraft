@@ -5,7 +5,7 @@ RUN dnf install -y git java-latest-openjdk
 # Build Spigot
 WORKDIR /opt/spigot-build
 
-RUN curl -o BuildTools.jar "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar" 
+RUN curl -o BuildTools.jar "https://hub.spigotmc.org/jenkins/job/BuildTools/160/artifact/target/BuildTools.jar" 
 RUN java -jar BuildTools.jar
 
 # Put Spigot in the right place, and clean up the build dir
