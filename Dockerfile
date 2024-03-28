@@ -1,6 +1,6 @@
 FROM fedora:38 AS minecraft
 
-RUN dnf install -y git java-21-openjdk
+RUN dnf install -y java-21-openjdk libwebp-tools
 
 WORKDIR /minecraft-init
 
