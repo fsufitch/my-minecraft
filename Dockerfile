@@ -2,16 +2,7 @@ FROM fedora:38 AS minecraft
 
 RUN dnf install -y git java-latest-openjdk
 
-# Build Spigot
-WORKDIR /opt/spigot-build
-
-RUN curl -o BuildTools.jar "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar" 
-RUN java -jar BuildTools.jar --rev 1.20.4
-
-# Put Spigot in the right place, and clean up the build dir
-WORKDIR /opt/minecraft
-RUN mv -v /opt/spigot-build/spigot-*.jar . && \
-    rm -rf /opt/spigot-build
+RUN curl -o paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/462/downloads/paper-1.20.4-462.jar"
 
 # Copy and configure the remaining files
 COPY container_entrypoint.sh server.properties ./
