@@ -1,28 +1,28 @@
 # My Minecraft Server
 
-This is a Docker-based Minecraft server.
+This is a container-based Minecraft server. Rootless Podman is the preferred way to run it, and the documented way to run it. The instructions should work for Docker just fine too, though.
 
 ## Building
 
 To build:
 
-    docker build -t my-minecraft:1.20.1 .    
+    docker build -t my-minecraft:1.20.4 .
 
-The image is based on Fedora 38 and uses the `java-latest-openjdk` (Java 20 at the time of writing).
+The image is based on Fedora 38 and uses `java-21-openjdk` as its Java distribution.
 
-It includes a [Spigot Minecraft server](https://spigotmc.org) compatible with Minecraft 1.20.1. The server is built using the latest [Spigot BuildTools](https://hub.spigotmc.org/jenkins/job/BuildTools/).
+It includes a [PaperMC Minecraft server](https://papermc.io/) compatible with Minecraft 1.20.4. The JAR is downloaded directly from PaperMC. The default settings are in [`server.properties`](server.properties). 
 
-The default settings are in [`server.properties`](server.properties). 
+**PaperMC is based on [SpigotMC](https://www.spigotmc.org/).** Any plugins installed must be made for Bukkit/Spigot/Paper. Mods which require Forge, Fabric, or other mod loaders are _not compatible_ with this Minecraft server setup.
 
-Within the image, the `/opt/minecraft` directory contains the server settings, binary JAR, and launch script. Launching the server sets up the actual runtime at `/opt/minecraft-runtime`. I recommend configuring this directory as a volume or local mount (`-v`), or the entire server will get wiped when the container gets deleted.
+Within the image, the `/opt/minecraft` directory contains the server settings, binary JAR, and launch script. Launching the server sets up the actual runtime at `/opt/minecraft-runtime`. I recommend configuring this directory as a volume or local mount (`-v`), or the entire server will get wiped when the container gets deleted. **Note:** The server start process will overwrite `server.properties`, `paper.jar`, and `container_entrypoint.sh`. Any changes to these are not preserved.
 
 ## Usage
 
-The commands below have been tested as working on Linux (using native Docker) and Windows (using Docker Desktop). It works based on the following assumptions:
+The commands below have been tested as working on Linux (using Podman) and Windows (using Docker Desktop). It works based on the following assumptions:
 
   * You are using a Bash-like terminal (`bash` or `zsh` on Linux/Mac; Cygwin/Gitbash or similar on Windows).
   * The served port is the default of 25565.
-  * The resulting container is ephemeral (can be created/destroyed with no data loss).
+  * The resulting container is ephemeral (can be created/destroyed with no data loss, as long as it uses the volume mount).
   * The container has the name `my-minecraft`.
   * Minecraft working files (JARs, configurations, plugins, and the world) are stored in `runtime` relative to the current directory, and mounted into the container. This protects them from deletion, and allows easy access from outside the container (for backups, changes to configuration, etc).
   * Java parameters are configured using the recommendations from [here](https://aikar.co/2018/07/02/tuning-the-jvm-g1gc-garbage-collector-flags-for-minecraft/). See [container_entrypoint.sh](container_entrypoint.sh) for more details.
@@ -33,7 +33,7 @@ The below commands are super detailed and could be bundled into some clever `doc
 
 Once you have the `my-minecraft:1.20.1` image, you can create a container based on it by using:
 
-    docker create \
+    podman create \
         --name my-minecraft \
         --interactive --tty \
         --mount 'type=bind,target=/opt/minecraft-runtime,source=/path/to/runtime/dir' \
@@ -59,34 +59,34 @@ Note that this command will fail if the `my-minecraft` container already exists.
 
 Start as a background process:
 
-    docker start my-minecraft
+    podman start my-minecraft
 
 Stop:
 
-    docker stop my-minecraft
+    podman stop my-minecraft
 
 You can also delete a stopped container entirely. This means deleting everything in it that is not volume-mounted (e.g. the `runtime/` folder). If you are not volume mounting somehow, your whole world will be lost. Use this command with care.
 
-    docker rm my-minecraft
+    podman rm my-minecraft
 
 To run an interactive Linux shell within the container, use:
 
-    docker exec -it my-minecraft bash
+    podman exec -it my-minecraft bash
 
 ### Logs
 
-Use `docker logs my-minecraft` to view the logs. Provide other options to the command to modify how you view them (see `docker logs --help` for details). Examples:
+Use `podman logs my-minecraft` to view the logs. Provide other options to the command to modify how you view them (see `podman logs --help` for details). Examples:
 
-* View the last 20 lines of logs: `docker logs -n 20 my-minecraft`.
-* Print all logs, and continue watching/following for more output: `docker logs -f my-minecraft`.
+* View the last 20 lines of logs: `podman logs -n 20 my-minecraft`.
+* Print all logs, and continue watching/following for more output: `podman logs -f my-minecraft`.
 
 ### Managing the server with the Minecraft CLI
 
 Minecraft server being managed via the CLI, but this container runs in the "background". To access the CLI (and bring the container into the foreground), use:
 
-    docker attach my-minecraft
+    podman attach my-minecraft
 
-**Do not exit this shell using Ctrl+D, Ctrl+C, or otherwise end the process**. Doing so affects the Minecraft process directly, and would shut down the server entirely. Instead, use the Docker detach sequence: `Ctrl+P`, `Ctrl+Q`.
+**Do not exit this shell using Ctrl+D, Ctrl+C, or otherwise end the process**. Doing so affects the Minecraft process directly, and would shut down the server entirely. Instead, use the detach sequence: `Ctrl+P`, `Ctrl+Q`.
 
 If you do accidentally do so, it should restart by itself (thanks to the restart option in the  creation command).
 
@@ -94,12 +94,8 @@ If you do accidentally do so, it should restart by itself (thanks to the restart
 
 Some command examples:
 
-* Copy a file/dir into the container: `docker cp /path/to/local/source my-minecraft:/path/to/container/destination`
-* Copy a file/dir out of the container: `docker cp my-minecraft:/path/to/container/source /path/to/local/destination`
+* Copy a file/dir into the container: `podman cp /path/to/local/source my-minecraft:/path/to/container/destination`
+* Copy a file/dir out of the container: `podman cp my-minecraft:/path/to/container/source /path/to/local/destination`
 * Back up the Minecraft server working directory, as a TGZ archive: `docker cp my-minecraft:/opt/minecraft-runtime - | gzip > backup.tar.gz`
 
 If you are mounting a local directory into the container you can also manage the server files directly. For example, you could add a plugin such as _Dynmap_ directly to `runtime/plugins/` using your local file manager.
-
-# Usage with Linux `systemd`
-
-> TODO
